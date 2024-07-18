@@ -132,6 +132,16 @@ check_install_virtualbox() {
     fi
 }
 
+# Function to check if VirtualBox is installed
+check_virtualbox_installed() {
+    if command -v virtualbox &> /dev/null; then
+        print_message "${GREEN}" "VirtualBox is installed. Proceeding with configuration..."
+        configure_virtualbox
+    else
+        print_message "${RED}" "VirtualBox is not installed. Skipping configuration."
+    fi
+}
+
 # Function to configure VirtualBox and install the extension pack
 configure_virtualbox() {
     # Load the VirtualBox kernel module
@@ -212,6 +222,6 @@ sudo systemctl restart libvirtd.service
 sudo nano /etc/mkinitcpio.conf
 MODULES=(vfio_pci vfio vfio_iommu_type1 vfio_virqfd)
 
-configure_virtualbox
+check_virtualbox_installed
 
 print_message "${PURPLE}" "THE VMHOST INSTALLATION IS COMPLETE."
