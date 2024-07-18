@@ -10,14 +10,33 @@
 
 #!/bin/bash
 
-# Define color codes
+############ COLOURED BASH TEXT
+
+# ANSI color codes
 RED='\033[0;31m'
+YELLOW='\033[0;33m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 PURPLE='\033[0;35m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+
+################################################################################################## FILE & FOLDER PATHS
+
+# Location
+APPLICATION="vmhost"
+BASE="$HOME/bash.$APPLICATION"
+FILES="$BASE/files"
+APP_LIST="$FILES/packages.txt"
+
+# Pre-Configuration
+BASH="$HOME/order_66"
+mkdir -p $BASH
+cp $APP_LIST $BASH
+
+
+################################################################################################## PRINT MESSAGE
 
 # Function to print colored messages
 print_message() {
@@ -25,6 +44,9 @@ print_message() {
     local MESSAGE=$2
     echo -e "${COLOR}${MESSAGE}${NC}"
 }
+
+
+################################################################################################## INSTALLATION FUNCTIONS
 
 # Function to update GRUB with IOMMU settings based on GPU type
 update_grub_iommu() {
@@ -80,15 +102,38 @@ update_grub_iommu() {
     print_message "$GREEN" "GRUB_CMDLINE_LINUX_DEFAULT updated successfully. Please reboot your system."
 }
 
+uncomment_and_change_libvirt_conf() {
+    # Path to the configuration file
+    local config_file="/etc/libvirt/libvirtd.conf"
+
+    # Ensure the file exists
+    if [[ ! -f "$config_file" ]]; then
+        print_message "$RED" "Configuration file not found: $config_file"
+        return 1
+    fi
+
+    # Uncomment and change the lines using sed
+    sed -i 's/#\s*\(unix_sock_group\s*=\s*"\).*\("\)/\1libvirt\2/' "$config_file"
+    sed -i 's/#\s*\(unix_sock_rw_perms\s*=\s*"\).*\("\)/\10770\2/' "$config_file"
+
+    # Verify the changes
+    grep -E 'unix_sock_group\s*=\s*"libvirt"' "$config_file" && print_message "$GREEN" "unix_sock_group set to libvirt"
+    grep -E 'unix_sock_rw_perms\s*=\s*"0770"' "$config_file" && print_message "$GREEN" "unix_sock_rw_perms set to 0770"
+}
+
+
+################################################################################################## MAIN LOGIC
+
 # Call the function
 update_grub_iommu
 
-sudo pacman -S dmidecode
-sudo pacman -Syy
-sudo reboot
-sudo pacman -S archlinux-keyring
-sudo pacman -S qemu libvirt virt-manager virt-viewer dnsmasq vde2 bridge-utils openbsd-netcat libguestfs edk2-ovmf vfio
-sudo pacman -S ebtables iptables    # Yes
+# Copy the ../files/packages.txt to /home/user/bash
+cp $APP_LIST $BASH
+
+# Get the Package Manager & Package Installer (Need it for the ../files/package.txt file)
+git clone https://github.com/Querzion/bash.pkmgr.git $HOME
+chmod +x -r $HOME/bash.pkmgr
+sh $HOME/bash.pkmgr/start.sh
 
 sudo systemctl enable libvirtd.service
 sudo systemctl start libvirtd.service
@@ -100,12 +145,7 @@ sudo systemctl status libvirtd.service
 sudo virsh net-autostart default
 sudo virsh net-start default
 
-sudo nano /etc/libvirt/libvirtd.conf
-
-# Set the UNIX domain socket group ownership to libvirt, (around line 85)
-    unix_sock_group = "libvirt"
-# Set the UNIX socket permissions for the R/W socket (around line 102)
-    unix_sock_rw_perms = "0770"
+uncomment_and_change_libvirt_conf
 
 sudo usermod -a -G libvirt $(whoami)
 newgrp libvirt
@@ -116,25 +156,7 @@ sudo systemctl restart libvirtd.service
 sudo nano /etc/mkinitcpio.conf
 MODULES=(vfio_pci vfio vfio_iommu_type1 vfio_virqfd)
 
-### _____________________________________________________________________________________________________________
-###
-###                             CPU PINNING (https://youtu.be/WYrTajuYhCk?t=725)
-### _____________________________________________________________________________________________________________
 
-lscpu -e    # See the CPU cores
-
-
-# PASSTHROUGH GPU - (https://www.youtube.com/watch?v=BUSrdUoedTo | https://www.youtube.com/watch?v=WYrTajuYhCk | https://www.youtube.com/watch?v=3yhwJxWSqXI)
-sudo pacman -S tree
-
-
-https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF
-https://passthroughpo.st/simple-per-vm-libvirt-hooks-with-the-vfio-tools-hook-helper/
-https://github.com/joeknock90/Single-GPU-Passthrough
-https://www.reddit.com/r/VFIO/
-
-# PATCHED BIOS
-https://www.techpowerup.com/vgabios/192500/asus-rx580-8192-170328
 
 
 
@@ -155,7 +177,7 @@ sudo nano /etc/modules-load.d/virtualbox.conf # Create the file!
 sudo usermod -aG vboxusers querzion
 sudo lsmod | grep vboxdrv
 
-# VirtualBox 6.1.28 Oracle VM VirtualBox Extension Pack (https://www.virtualbox.org/wiki/Downloads)
+# VirtualBox Oracle VM VirtualBox Extension Pack (https://www.virtualbox.org/wiki/Downloads)
     All supported platforms # Download to your ~/ folder
 virtualbox
 # Open VirtualBox >> Preferences & Extensions >> Choose the Extension file and install it.
