@@ -212,6 +212,30 @@ configure_virtualbox() {
     print_message "${PURPLE}" "VirtualBox is now configured with the latest Extension Pack."
 }
 
+packages_txt() {
+    # Check if $HOME/bash directory exists, if not create it
+    if [ ! -d "$HOME/bash" ]; then
+        mkdir -p "$HOME/bash"
+        print_message "$GREEN" "Created directory: $HOME/bash"
+    fi
+    
+    # Check if $HOME/bash.pkmgr exists, delete it if it does
+    if [ -d "$HOME/bash.pkmgr" ]; then
+        print_message "$YELLOW" "Removing existing $HOME/bash.pkmgr"
+        rm -rf "$HOME/bash.pkmgr"
+    fi
+    
+    # Copy ../files/packages.txt to /home/user/bash
+    cp "$APP_LIST" "$BASH"
+    print_message "$CYAN" "Copied $APP_LIST to $BASH"
+    
+    # Get the Package Manager & Package Installer
+    git clone https://github.com/Querzion/bash.pkmgr.git "$HOME/bash.pkmgr"
+    chmod +x -R "$HOME/bash.pkmgr"
+    sh "$HOME/bash.pkmgr/installer.sh"
+    
+    print_message "$GREEN" "Applications installed successfully."
+}
 
 ################################################################################################## MAIN LOGIC
 
@@ -221,13 +245,8 @@ update_grub_iommu
 # Main script execution
 check_install_virtualbox
 
-# Copy the ../files/packages.txt to /home/user/bash
-cp $APP_LIST $BASH
-
-# Get the Package Manager & Package Installer (Need it for the ../files/package.txt file)
-git clone https://github.com/Querzion/bash.pkmgr.git $HOME
-chmod +x -r $HOME/bash.pkmgr
-sh $HOME/bash.pkmgr/start.sh
+# Install applications from packages.txt
+packages_txt
 
 sudo systemctl enable libvirtd.service
 sudo systemctl start libvirtd.service
