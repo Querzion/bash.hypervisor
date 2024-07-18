@@ -1,0 +1,15 @@
+"pacman" "dmidecode" # DMI table decoder
+"pacman" "archlinux-keyring" # Arch Linux keyring
+"pacman" "qemu" # QEMU emulator
+"pacman" "libvirt" # Virtualization API
+"pacman" "virt-manager" # Virtual machine manager
+"pacman" "virt-viewer" # Virtual machine viewer
+"pacman" "dnsmasq" # Lightweight DNS forwarder and DHCP server
+"pacman" "vde2" # Virtual Distributed Ethernet
+"pacman" "bridge-utils" # Utilities for configuring network bridges
+"pacman" "openbsd-netcat" # Netcat networking utility
+"pacman" "libguestfs" # Access and modify virtual machine disk images
+"pacman" "edk2-ovmf" # UEFI firmware for virtual machines
+"pacman" "vfio" # VFIO driver
+"pacman" "ebtables" # Ethernet bridge firewall utilities
+"pacman" "iptables" # Packet filtering framework for Linux
