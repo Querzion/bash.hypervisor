@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 ################################################################################################## FILE & FOLDER PATHS
 
 # Location
-APPLICATION="vmhost"
+APPLICATION="hypervisor"
 BASE="$HOME/bash.$APPLICATION"
 FILES="$BASE/files"
 APP_LIST="$FILES/packages.txt"
