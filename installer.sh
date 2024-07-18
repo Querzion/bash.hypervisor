@@ -32,8 +32,6 @@ APP_LIST="$FILES/packages.txt"
 
 # Pre-Configuration
 BASH="$HOME/order_66"
-mkdir -p $BASH
-cp $APP_LIST $BASH
 
 
 ################################################################################################## PRINT MESSAGE
