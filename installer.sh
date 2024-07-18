@@ -121,6 +121,34 @@ uncomment_and_change_libvirt_conf() {
     grep -E 'unix_sock_rw_perms\s*=\s*"0770"' "$config_file" && print_message "$GREEN" "unix_sock_rw_perms set to 0770"
 }
 
+# Function to update /etc/mkinitcpio.conf with additional modules
+update_mkinitcpio_conf() {
+    MODULES_TO_ADD="vfio_pci vfio vfio_iommu_type1 vfio_virqfd"
+    MKINITCPIO_CONF="/etc/mkinitcpio.conf"
+
+    # Backup the original file
+    print_message "$PURPLE" "Backing up the original $MKINITCPIO_CONF..."
+    cp "$MKINITCPIO_CONF" "$MKINITCPIO_CONF.bak"
+
+    # Check if backup was successful
+    if [[ $? -ne 0 ]]; then
+        print_message "$RED" "Backup failed. Exiting."
+        exit 1
+    fi
+
+    print_message "$PURPLE" "Modifying $MKINITCPIO_CONF..."
+    # Use sed to add the modules to the MODULES=() line, ensuring existing entries are preserved
+    sed -i "/^MODULES=/ s/(\(.*\))/(\1 $MODULES_TO_ADD)/" "$MKINITCPIO_CONF"
+
+    # Check if sed command was successful
+    if [[ $? -ne 0 ]]; then
+        print_message "$RED" "Failed to update $MKINITCPIO_CONF. Exiting."
+        exit 1
+    fi
+
+    print_message "$GREEN" "MODULES in $MKINITCPIO_CONF updated successfully."
+}
+
 # Function to ask if the user wants to install VirtualBox alongside QEMU/KVM
 check_install_virtualbox() {
     read -p "$(print_message "${CYAN}" "Do you want to install VirtualBox alongside QEMU/KVM? (y/n): ")" install_choice
@@ -219,8 +247,7 @@ newgrp libvirt
 sudo systemctl restart libvirtd.service
 
 # PRELOAD vfio
-sudo nano /etc/mkinitcpio.conf
-MODULES=(vfio_pci vfio vfio_iommu_type1 vfio_virqfd)
+update_mkinitcpio_conf
 
 check_virtualbox_installed
 
