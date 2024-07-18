@@ -121,11 +121,67 @@ uncomment_and_change_libvirt_conf() {
     grep -E 'unix_sock_rw_perms\s*=\s*"0770"' "$config_file" && print_message "$GREEN" "unix_sock_rw_perms set to 0770"
 }
 
+# Function to ask if the user wants to install VirtualBox alongside QEMU/KVM
+check_install_virtualbox() {
+    read -p "$(print_message "${CYAN}" "Do you want to install VirtualBox alongside QEMU/KVM? (y/n): ")" install_choice
+    if [[ "$install_choice" == "y" ]]; then
+        echo "\"pacman\" \"virtualbox\" # Virtual Machine Manager" >> "$HOME/bash.vmhost/files/packages.txt"
+        print_message "${GREEN}" "Added VirtualBox to packages.txt."
+    else
+        print_message "${YELLOW}" "Skipped adding VirtualBox to packages.txt."
+    fi
+}
+
+# Function to configure VirtualBox and install the extension pack
+configure_virtualbox() {
+    # Load the VirtualBox kernel module
+    print_message "${CYAN}" "Loading VirtualBox kernel module..."
+    sudo modprobe vboxdrv
+
+    # Start and exit VirtualBox to initialize necessary settings
+    print_message "${CYAN}" "Starting and exiting VirtualBox to initialize settings..."
+    virtualbox & sleep 5 && pkill virtualbox
+
+    # Create and configure the modules-load.d file for VirtualBox
+    print_message "${CYAN}" "Creating configuration file for VirtualBox kernel module..."
+    echo "vboxdrv" | sudo tee /etc/modules-load.d/virtualbox.conf
+
+    # Add the current user to the vboxusers group
+    print_message "${CYAN}" "Adding the current user to the vboxusers group..."
+    sudo usermod -aG vboxusers "$USER"
+
+    # Check if the vboxdrv module is loaded
+    print_message "${CYAN}" "Checking if the vboxdrv module is loaded..."
+    sudo lsmod | grep vboxdrv
+
+    # Download the latest version of the VirtualBox Extension Pack
+    print_message "${CYAN}" "Downloading the latest version of the VirtualBox Extension Pack..."
+    extension_pack_url=$(curl -s https://www.virtualbox.org/wiki/Downloads | grep -oP 'https://download.virtualbox.org/virtualbox/\d+\.\d+\.\d+/Oracle_VM_VirtualBox_Extension_Pack-\d+\.\d+\.\d+\.vbox-extpack' | head -n 1)
+    extension_pack_path="$HOME/Oracle_VM_VirtualBox_Extension_Pack.vbox-extpack"
+    curl -L -o "$extension_pack_path" "$extension_pack_url"
+    print_message "${GREEN}" "Downloaded the VirtualBox Extension Pack to $extension_pack_path."
+
+    # Install the Extension Pack
+    print_message "${CYAN}" "Installing the VirtualBox Extension Pack..."
+    sudo VBoxManage extpack install --replace "$extension_pack_path"
+    print_message "${GREEN}" "Installed the VirtualBox Extension Pack."
+
+    # Cleanup
+    print_message "${CYAN}" "Cleaning up the downloaded Extension Pack file..."
+    rm "$extension_pack_path"
+    print_message "${GREEN}" "Cleaned up the downloaded Extension Pack file."
+
+    print_message "${PURPLE}" "VirtualBox is now configured with the latest Extension Pack."
+}
+
 
 ################################################################################################## MAIN LOGIC
 
 # Call the function
 update_grub_iommu
+
+# Main script execution
+check_install_virtualbox
 
 # Copy the ../files/packages.txt to /home/user/bash
 cp $APP_LIST $BASH
@@ -156,8 +212,6 @@ sudo systemctl restart libvirtd.service
 sudo nano /etc/mkinitcpio.conf
 MODULES=(vfio_pci vfio vfio_iommu_type1 vfio_virqfd)
 
+configure_virtualbox
 
-
-
-
-
+print_message "${PURPLE}" "THE VMHOST INSTALLATION IS COMPLETE."
