@@ -214,9 +214,9 @@ configure_virtualbox() {
 
 packages_txt() {
     # Check if $HOME/bash directory exists, if not create it
-    if [ ! -d "$HOME/bash" ]; then
-        mkdir -p "$HOME/bash"
-        print_message "$GREEN" "Created directory: $HOME/bash"
+    if [ ! -d "$BASH" ]; then
+        mkdir -p "$BASH"
+        print_message "$GREEN" "Created directory: $BASH"
     fi
     
     # Check if $HOME/bash.pkmgr exists, delete it if it does
