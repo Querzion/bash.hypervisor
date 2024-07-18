@@ -160,24 +160,4 @@ MODULES=(vfio_pci vfio vfio_iommu_type1 vfio_virqfd)
 
 
 
-### _____________________________________________________________________________________________________________
-###
-###                                     VIRTUAL MACHINE - VIRTUALBOX
-### _____________________________________________________________________________________________________________
 
-(https://linuxhint.com/install-virtualbox-arch-linux/)
-
-sudo pacman -Syu
-sudo pacman -S virtualbox
-# choose 2 and enter
-sudo modprobe vboxdrv
-virtualbox # Start and Exit
-sudo nano /etc/modules-load.d/virtualbox.conf # Create the file!
-    vboxdrv # Save & Exit
-sudo usermod -aG vboxusers querzion
-sudo lsmod | grep vboxdrv
-
-# VirtualBox Oracle VM VirtualBox Extension Pack (https://www.virtualbox.org/wiki/Downloads)
-    All supported platforms # Download to your ~/ folder
-virtualbox
-# Open VirtualBox >> Preferences & Extensions >> Choose the Extension file and install it.
