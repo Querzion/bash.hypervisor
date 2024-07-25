@@ -44,7 +44,8 @@ print_message() {
 }
 
 
-################################################################################################## INSTALLATION FUNCTIONS
+######################################################################################################################################################### INSTALLATION FUNCTIONS
+################################################################################################## GRUB
 
 # Function to update GRUB with IOMMU settings based on GPU type
 update_grub_iommu() {
@@ -100,6 +101,9 @@ update_grub_iommu() {
     print_message "$GREEN" "GRUB_CMDLINE_LINUX_DEFAULT updated successfully. Please reboot your system."
 }
 
+
+################################################################################################## LIBVIRT
+
 uncomment_and_change_libvirt_conf() {
     # Path to the configuration file
     local config_file="/etc/libvirt/libvirtd.conf"
@@ -118,6 +122,9 @@ uncomment_and_change_libvirt_conf() {
     grep -E 'unix_sock_group\s*=\s*"libvirt"' "$config_file" && print_message "$GREEN" "unix_sock_group set to libvirt"
     grep -E 'unix_sock_rw_perms\s*=\s*"0770"' "$config_file" && print_message "$GREEN" "unix_sock_rw_perms set to 0770"
 }
+
+
+################################################################################################## MKINITCPIO
 
 # Function to update /etc/mkinitcpio.conf with additional modules
 update_mkinitcpio_conf() {
@@ -146,6 +153,9 @@ update_mkinitcpio_conf() {
 
     print_message "$GREEN" "MODULES in $MKINITCPIO_CONF updated successfully."
 }
+
+
+################################################################################################## VIRTUALBOX
 
 # Function to ask if the user wants to install VirtualBox alongside QEMU/KVM
 check_install_virtualbox() {
@@ -209,6 +219,9 @@ configure_virtualbox() {
 
     print_message "${PURPLE}" "VirtualBox is now configured with the latest Extension Pack."
 }
+
+
+################################################################################################## PACKAGE INSTALLER
 
 packages_txt() {
     # Check if $HOME/bash directory exists, if not create it
